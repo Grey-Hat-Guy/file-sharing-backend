@@ -10,7 +10,7 @@ const cors = require('cors');
 connectDB();
 
 const corsOptions = {
-    origin: "http://localhost:3000",
+    origin: ["http://localhost:3000", "https://file-sharing-frontend-five.vercel.app"],
     credentials: true
 };
 
