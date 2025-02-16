@@ -27,6 +27,10 @@ app.get('/api/protected', authMiddleware, (req, res) => {
     res.json({ message: 'This is a protected route', user: req.user });
 });
 
+app.get('/', (req, res) => {
+    res.send("Hello");
+});
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
