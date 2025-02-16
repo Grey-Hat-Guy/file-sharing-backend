@@ -28,7 +28,7 @@ app.get('/api/protected', authMiddleware, (req, res) => {
 });
 
 app.get('/', (req, res) => {
-    res.send("Hello");
+    res.send("Hello Server");
 });
 
 const PORT = process.env.PORT || 5000;
