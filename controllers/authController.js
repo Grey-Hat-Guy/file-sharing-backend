@@ -2,6 +2,20 @@ const User = require('../models/User');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 
+const authCheck = async (req, res) => {
+    const token = req.cookies.token;
+    if (!token) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        return res.json({ message: "Authenticated" });
+    } catch (error) {
+        return res.status(401).json({ message: "Unauthorized" });
+    }
+}
+
 const register = async (req, res) => {
     const { email, password } = req.body;
     try {
@@ -51,4 +65,4 @@ const login = async (req, res) => {
     }
 };
 
-module.exports = { register, login };
+module.exports = { register, login, authCheck };
