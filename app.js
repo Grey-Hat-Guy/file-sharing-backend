@@ -9,16 +9,21 @@ const cors = require('cors');
 
 connectDB();
 
-const corsOptions = {
-    origin: ["http://localhost:3000", "https://file-sharing-frontend-five.vercel.app"],
-    credentials: true
-};
-
 const app = express();
 
-app.use(cookieParser());
+const corsOptions = {
+    origin: ["http://localhost:3000", "https://file-sharing-frontend-five.vercel.app"],
+    credentials: true,
+    methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
+    allowedHeaders: ["Content-Type", "Authorization"]
+};
+
+
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
+
 app.use(express.json());
+app.use(cookieParser());
 
 app.use('/api', authRoutes);
 app.use('/api/files', fileRoutes);
