@@ -14,7 +14,7 @@ connectDB();
 const app = express();
 
 const corsOptions = {
-    origin: ["http://localhost:3000", "https://file-sharing-frontend-five.vercel.app"],
+    origin: ["http://localhost:3000", "https://file-sharing-frontend-phi.vercel.app"],
     credentials: true,
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     allowedHeaders: ["Content-Type", "Authorization"]
