@@ -6,6 +6,8 @@ const authRoutes = require('./routes/authRoutes');
 const fileRoutes = require('./routes/fileRoutes');
 const authMiddleware = require('./midddlewares/authMiddleware');
 const cors = require('cors');
+const fs = require('fs');
+const path = require('path');
 
 connectDB();
 
@@ -17,6 +19,11 @@ const corsOptions = {
     methods: "GET,HEAD,PUT,PATCH,POST,DELETE",
     allowedHeaders: ["Content-Type", "Authorization"]
 };
+
+const uploadPath = path.join(__dirname, 'uploads');
+if (!fs.existsSync(uploadPath)) {
+    fs.mkdirSync(uploadPath, { recursive: true });
+}
 
 
 app.use(cors(corsOptions));
