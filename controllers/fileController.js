@@ -57,17 +57,21 @@ const generateLink = async (req, res) => {
             return res.status(404).json({ message: "File not found" });
         }
 
-        const token = jwt.sign({ fileId: file._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+        let existingLink = await Link.findOne({ fileId: file._id, createdBy: req.user.id });
 
-        const newLink = new Link({
-            fileId: file._id,
-            token: token,
-            createdBy: req.user.id,
-        });
+        if (!existingLink) {
+            const token = jwt.sign({ fileId: file._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
 
-        await newLink.save();
+            existingLink = new Link({
+                fileId: file._id,
+                token: token,
+                createdBy: req.user.id,
+            });
 
-        const downloadUrl = `${process.env.FRONTEND_URL}/download/${token}`;
+            await existingLink.save();
+        }
+
+        const downloadUrl = `${process.env.FRONTEND_URL}/download/${existingLink.token}`;
         res.json({ message: "Link generated successfully", url: downloadUrl });
 
     } catch (error) {
