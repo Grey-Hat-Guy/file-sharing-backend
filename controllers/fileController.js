@@ -71,7 +71,7 @@ const generateLink = async (req, res) => {
             await existingLink.save();
         }
 
-        const downloadUrl = `${process.env.FRONTEND_URL}/download/${existingLink.token}`;
+        const downloadUrl = `${process.env.FRONTEND_URL}/api/files/download/${existingLink.token}`;
         res.json({ message: "Link generated successfully", url: downloadUrl });
 
     } catch (error) {
