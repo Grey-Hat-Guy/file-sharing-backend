@@ -5,14 +5,14 @@ const bcrypt = require('bcrypt');
 const authCheck = async (req, res) => {
     const token = req.cookies.token;
     if (!token) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.json({ isLoggedIn: false });
     }
 
     try {
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        return res.json({ message: "Authenticated" });
+        jwt.verify(token, process.env.JWT_SECRET);
+        return res.json({ isLoggedIn: true });
     } catch (error) {
-        return res.status(401).json({ message: "Unauthorized" });
+        return res.json({ isLoggedIn: false });
     }
 }
 
@@ -58,11 +58,20 @@ const login = async (req, res) => {
             maxAge: 60 * 60 * 1000,
         });
 
-        res.json({ message: 'Login successful' });
+        res.json({ message: 'Login successful', token });
     } catch (error) {
         console.error('Server error:', error);
         res.status(500).json({ message: 'Server error' });
     }
 };
 
-module.exports = { register, login, authCheck };
+const logout = async (req, res) => {
+    res.clearCookie("token", {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+    });
+    res.json({ message: "Logged out successfully" });
+}
+
+module.exports = { register, login, authCheck, logout };
