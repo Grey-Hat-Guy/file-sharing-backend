@@ -4,7 +4,7 @@ const authMiddleware = (req, res, next) => {
     const token = req.cookies.token;
     if (!token) {
         // return res.status(401).json({ message: 'No token, authorization denied' });
-        return res.redirect('/');
+        return res.redirect('https://file-sharing-frontend-phi.vercel.app');
     }
 
     try {
@@ -13,7 +13,7 @@ const authMiddleware = (req, res, next) => {
         next();
     } catch (error) {
         // res.status(401).json({ message: 'Token is not valid' });
-        return res.redirect('/');
+        return res.redirect('https://file-sharing-frontend-phi.vercel.app');
     }
 };
 
