@@ -103,12 +103,12 @@ const decryptFile = async (req, res) => {
 
         res.setHeader("Content-Disposition", `attachment; filename="${file.filename}"`);
         res.setHeader("Content-Type", "application/octet-stream");
+        res.setHeader("Access-Control-Expose-Headers", "Content-Disposition");
         res.send(decryptedData);
 
     } catch (error) {
         res.status(401).json({ message: "Invalid or expired link!" });
     }
 };
-
 
 module.exports = { uploadFile, getFiles, generateLink, decryptFile };
