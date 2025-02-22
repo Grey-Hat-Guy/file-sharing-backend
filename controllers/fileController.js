@@ -85,17 +85,22 @@ const generateLink = async (req, res) => {
 
         let existingLink = await Link.findOne({ fileId: file._id, createdBy: req.user.id });
 
-        if (!existingLink) {
-            const payload = { fileId: file._id };
-            let hashedPassword = null;
+        const payload = { fileId: file._id };
+        let hashedPassword = null;
 
-            if (password) {
-                hashedPassword = crypto.createHash("sha256").update(password).digest("hex");
-                payload.password = hashedPassword;
-            }
+        if (password) {
+            hashedPassword = crypto.createHash("sha256").update(password).digest("hex");
+            payload.password = hashedPassword;
+        }
 
-            const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
+        const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
 
+        if (existingLink) {
+            existingLink.token = token;
+            existingLink.expiry = Date.now() + (expiry ? expiry * 60000 : 3600000);
+            existingLink.password = hashedPassword;
+            await existingLink.save();
+        } else {
             existingLink = new Link({
                 fileId: file._id,
                 token: token,
