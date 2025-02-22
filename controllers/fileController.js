@@ -48,9 +48,31 @@ const getFiles = async (req, res) => {
     }
 }
 
+const checkFileInfo = async (req, res) => {
+    try {
+        const { token } = req.params;
+        const decoded = jwt.verify(token, proces.env.JWT_SECRET);
+
+        const link = await Link.findOne({ token });
+        if (!link) {
+            return res.status(404).json({ message: "Invalid or expired link" });
+        }
+
+        const file = await File.findById(decoded.fileId);
+        if (!file) {
+            return res.status(404).json({ message: "File not found" });
+        }
+
+        res.json({ passwordProtected: !!link.password });
+    } catch (error) {
+        res.status(401).json({ message: "Invalid or expired token" });
+    }
+}
+
 const generateLink = async (req, res) => {
     try {
         const { fileId } = req.params;
+        const { password, expiry } = req.body;
 
         const file = await File.findById(fileId);
         if (!file) {
@@ -60,12 +82,22 @@ const generateLink = async (req, res) => {
         let existingLink = await Link.findOne({ fileId: file._id, createdBy: req.user.id });
 
         if (!existingLink) {
-            const token = jwt.sign({ fileId: file._id }, process.env.JWT_SECRET, { expiresIn: "1h" });
+            const payload = { fileId: file._id };
+            let hashedPassword = null;
+
+            if (password) {
+                hashedPassword = crypto.createHash("sha256").update(password).digest("hex");
+                payload.password = hashedPassword;
+            }
+
+            const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: "1h" });
 
             existingLink = new Link({
                 fileId: file._id,
                 token: token,
                 createdBy: req.user.id,
+                expiry: Date.now() + (expiry ? expiry * 60000 : 3600000),
+                password: hashedPassword
             });
 
             await existingLink.save();
@@ -86,16 +118,28 @@ const decryptFile = async (req, res) => {
         }
 
         const { token } = req.params;
+        const { password } = req.body;
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        const fileLink = await Link.findOne({ token });
+        if (!fileLink) {
+            return res.status(404).json({ message: "Invalid or expired link" });
+        }
+
+        if (fileLink.password) {
+            if (!password) {
+                return res.status(400).json({ message: "Password is required to download this file" });
+            }
+            const hashedPassword = crypto.createHash("sha256").update(password).digest("hex");
+            if (hashedPassword !== fileLink.password) {
+                return res.status(401).json({ message: "Invalid password" });
+            }
+        }
 
         const file = await File.findById(decoded.fileId);
         if (!file) {
             return res.status(404).json({ message: "File not found" });
         }
-
-        // if (file.uploadedBy.toString() !== req.user.id) {
-        //     return res.status(403).json({ message: "Forbidden: You don't have access to this file" });
-        // }
 
         const decipher = crypto.createDecipheriv(algorithm, encryptionKey, Buffer.from(file.iv, "hex"));
         let decryptedData = decipher.update(Buffer.from(file.encryptedData, "base64"));
@@ -111,4 +155,4 @@ const decryptFile = async (req, res) => {
     }
 };
 
-module.exports = { uploadFile, getFiles, generateLink, decryptFile };
+module.exports = { uploadFile, getFiles, checkFileInfo, generateLink, decryptFile };
