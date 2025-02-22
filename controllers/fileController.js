@@ -51,11 +51,15 @@ const getFiles = async (req, res) => {
 const checkFileInfo = async (req, res) => {
     try {
         const { token } = req.params;
-        const decoded = jwt.verify(token, proces.env.JWT_SECRET);
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         const link = await Link.findOne({ token });
         if (!link) {
             return res.status(404).json({ message: "Invalid or expired link" });
+        }
+
+        if (Date.now() > link.expiry) {
+            return res.status(410).json({ message: "Link has expired" });
         }
 
         const file = await File.findById(decoded.fileId);
@@ -119,6 +123,7 @@ const decryptFile = async (req, res) => {
 
         const { token } = req.params;
         const { password } = req.body;
+
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
         const fileLink = await Link.findOne({ token });
